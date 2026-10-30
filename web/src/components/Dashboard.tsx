@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Download, LogOut, RefreshCw, Search, Settings } from 'lucide-react'
+import { Download, LogOut, RefreshCw, Search, Settings, Sparkles } from 'lucide-react'
 import LeadCard from './LeadCard'
 import type { LeadCounts, LeadDTO, LeadStatus, ProductDTO } from '@/lib/types'
 
@@ -29,6 +29,8 @@ export default function Dashboard() {
   const [debounced, setDebounced] = useState('')
   const [auto, setAuto] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [scraping, setScraping] = useState(false)
+  const [scrapeMsg, setScrapeMsg] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null)
 
@@ -95,6 +97,26 @@ export default function Dashboard() {
     router.refresh()
   }
 
+  async function handleScrapeXApi() {
+    setScraping(true)
+    setScrapeMsg('Sedang menarik tweet via API X...')
+    try {
+      const res = await fetch('/api/scrape/x-api', { method: 'POST' })
+      const data = await res.json()
+      if (res.ok) {
+        setScrapeMsg(`Selesai! ${data.savedLeads || 0} leads baru disimpan (dari ${data.totalFetched || 0} tweet).`)
+        load(true)
+      } else {
+        setScrapeMsg(`Gagal: ${data.error || 'Terjadi kesalahan'}`)
+      }
+    } catch {
+      setScrapeMsg('Gagal menghubungkan ke server')
+    } finally {
+      setScraping(false)
+      setTimeout(() => setScrapeMsg(null), 5000)
+    }
+  }
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6">
       <header className="flex flex-wrap items-center gap-3">
@@ -107,6 +129,15 @@ export default function Dashboard() {
           </label>
           <button onClick={() => load()} className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1.5 font-medium hover:bg-white">
             <RefreshCw size={14} /> Segarkan
+          </button>
+          <button
+            onClick={handleScrapeXApi}
+            disabled={scraping}
+            className="inline-flex items-center gap-1.5 rounded-full border border-sky-300 bg-sky-50 px-3.5 py-1.5 font-semibold text-sky-800 shadow-sm transition hover:bg-sky-100 disabled:opacity-50"
+            title="Tarik calon pembeli terbaru dari X via API"
+          >
+            <Sparkles size={14} className={scraping ? 'animate-spin' : 'text-sky-600'} />
+            {scraping ? 'Menarik...' : 'Tarik via API X'}
           </button>
           <a href="/api/leads/export" className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1.5 font-medium hover:bg-white">
             <Download size={14} /> Ekspor CSV
@@ -162,6 +193,14 @@ export default function Dashboard() {
         </select>
       </div>
 
+      {scrapeMsg && (
+        <div
+          role="status"
+          className="mt-3 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-medium text-sky-800 animate-in fade-in"
+        >
+          {scrapeMsg}
+        </div>
+      )}
       {updatedAt && (
         <p className="mt-3 text-xs text-slate-500">Diperbarui {updatedAt.toLocaleTimeString('id-ID')}</p>
       )}
