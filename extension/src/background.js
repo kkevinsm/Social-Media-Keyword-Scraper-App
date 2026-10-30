@@ -2,7 +2,7 @@
  * Service worker: antrean + pengiriman ke POST /api/leads/ingest.
  * Token hanya dibaca di sini (tidak pernah diteruskan ke content script).
  */
-const DEFAULTS = { apiUrl: 'https://web-seven-gilt-52.vercel.app', token: '' }
+const DEFAULTS = { apiUrl: 'https://reply-bot-kkevinsm.vercel.app', token: '' }
 const MAX_QUEUE = 500
 const MAX_SEEN = 3000
 
