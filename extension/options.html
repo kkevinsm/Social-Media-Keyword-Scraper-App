@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <title>Pengaturan ReplyBot</title>
+  <style>
+    body { max-width: 520px; margin: 32px auto; padding: 0 16px; font: 15px system-ui, sans-serif; color: #3b1f2b; }
+    label { display: block; margin: 14px 0 4px; font-weight: 600; }
+    input { width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #f3c4d4; border-radius: 10px; font: inherit; }
+    button { margin-top: 16px; margin-right: 8px; padding: 8px 16px; border-radius: 999px; border: 1px solid #d6336c; background: #d6336c; color: #fff; font: inherit; cursor: pointer; }
+    button.secondary { background: #fff; color: #d6336c; }
+    #msg { margin-top: 14px; }
+    small { color: #6b5a61; }
+  </style>
+</head>
+<body>
+  <h1>Pengaturan ReplyBot Collector</h1>
+  <label for="apiUrl">URL dashboard</label>
+  <input id="apiUrl" placeholder="http://localhost:3000" />
+  <small>Lokal: http://localhost:3000 · Produksi: https://nama-app.vercel.app</small>
+  <label for="token">Ingestion token</label>
+  <input id="token" type="password" autocomplete="off" placeholder="Isi dengan INGESTION_SECRET_KEY" />
+  <button id="save">Simpan</button>
+  <button id="test" class="secondary">Tes koneksi</button>
+  <div id="msg" role="status"></div>
+  <script src="options.js"></script>
+</body>
+</html>
+

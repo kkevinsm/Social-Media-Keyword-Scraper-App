@@ -1,0 +1,69 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id          String          @id @default(uuid())
+  name        String          @unique
+  slug        String          @unique
+  color       String          @default("#ec4899")
+  iconText    String          @default("P")
+  isActive    Boolean         @default(true)
+  rules       KeywordRule[]
+  leads       Lead[]
+  templates   ReplyTemplate[]
+  createdAt   DateTime        @default(now())
+}
+
+model KeywordRule {
+  id               String   @id @default(uuid())
+  productId        String
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  intentKeywords   String   @default("butuh,mau beli,ready,cari,butuh cepet,ada yg jual")
+  negativeKeywords String   @default("wts,ready stock,open slot,testi,order via dm,trusted,bergaransi dan trusted,olss")
+  hashtags         String   @default("#zonauang,#zonajajan,#bealanja")
+  createdAt        DateTime @default(now())
+}
+
+model Lead {
+  id                String   @id @default(uuid())
+  externalId        String
+  platform          String   // "x" | "telegram" | "threads"
+  authorName        String?
+  authorUsername    String
+  authorAvatarUrl   String?
+  content           String
+  matchedProductId  String?
+  matchedProduct    Product? @relation(fields: [matchedProductId], references: [id], onDelete: SetNull)
+  matchedKeywords   String   @default("")
+  postUrl           String
+  status            String   @default("baru") // "baru" | "ditindaklanjuti" | "selesai" | "abaikan"
+  postedAt          DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  @@unique([platform, externalId])
+}
+
+model ReplyTemplate {
+  id          String   @id @default(uuid())
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  title       String
+  bodyText    String
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Setting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+

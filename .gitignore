@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js build output
+.next/
+out/
+build/
+dist/
+
+# Environment Variables (PENTING: Jangan bocorkan kredensial ke GitHub)
+.env
+.env*.local
+.env.local
+.env.production
+.env.development
+*.env
+!.env.example
+!*.env.example
+
+# SQLite local databases
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+web/prisma/dev.db*
+
+# Python & Telegram Worker
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+telegram-worker/.venv/
+telegram-worker/session/
+*.session
+*.session-journal
+
+# OS & Editor
+.DS_Store
+*.pem
+.vscode/
+.idea/

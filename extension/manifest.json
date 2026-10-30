@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "ReplyBot Lead Collector",
+  "version": "1.0.0",
+  "description": "Kirim postingan pencarian X & Threads yang tampil di browser Anda ke dashboard ReplyBot.",
+  "permissions": ["storage", "alarms"],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://www.threads.net/*",
+    "https://www.threads.com/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*",
+    "https://*.vercel.app/*"
+  ],
+  "background": { "service_worker": "src/background.js" },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*",
+        "https://www.threads.net/*",
+        "https://www.threads.com/*"
+      ],
+      "js": ["src/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": { "default_title": "ReplyBot", "default_popup": "popup.html" },
+  "options_ui": { "page": "options.html", "open_in_tab": true }
+}
+

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <title>ReplyBot</title>
+  <style>
+    body { width: 300px; margin: 0; padding: 14px; font: 14px system-ui, sans-serif; color: #3b1f2b; background: #fff8f6; }
+    h1 { font-size: 16px; margin: 0 0 10px; }
+    .row { display: flex; align-items: center; justify-content: space-between; margin: 8px 0; }
+    .stat { background: #fff; border: 1px solid #f3c4d4; border-radius: 10px; padding: 8px 10px; margin: 8px 0; line-height: 1.6; }
+    .err { color: #b42318; }
+    button, select { font: inherit; border-radius: 999px; border: 1px solid #f3c4d4; background: #fff; padding: 5px 12px; cursor: pointer; }
+    button.primary { background: #d6336c; color: #fff; border-color: #d6336c; }
+    a { color: #d6336c; }
+  </style>
+</head>
+<body>
+  <h1>ReplyBot Collector</h1>
+  <label class="row"><span>Aktif</span><input type="checkbox" id="enabled" /></label>
+  <label class="row">
+    <span>Muat ulang pencarian</span>
+    <select id="reload">
+      <option value="0">Mati</option>
+      <option value="2">Tiap 2 menit</option>
+      <option value="5">Tiap 5 menit</option>
+      <option value="10">Tiap 10 menit</option>
+    </select>
+  </label>
+  <div class="stat" id="stat">…</div>
+  <div class="row">
+    <button class="primary" id="flush">Kirim sekarang</button>
+    <a href="#" id="opts">Pengaturan</a>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
+
