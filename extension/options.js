@@ -2,7 +2,7 @@ const $ = (id) => document.getElementById(id)
 const say = (t) => ($('msg').textContent = t)
 
 chrome.storage.local.get(['apiUrl', 'token']).then(({ apiUrl, token }) => {
-  $('apiUrl').value = apiUrl || 'http://localhost:3000'
+  $('apiUrl').value = apiUrl || 'https://web-seven-gilt-52.vercel.app'
   $('token').value = token || ''
 })
 
