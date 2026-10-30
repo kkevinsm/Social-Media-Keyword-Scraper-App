@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { ExternalLink, Copy, Check, Trash2, MessageSquareReply, EyeOff } from 'lucide-react'
 import type { LeadDTO, LeadStatus } from '@/lib/types'
-import { FALLBACK_TEMPLATE, PLATFORM_LABEL, copyText, fillTemplate, splitHighlight, timeAgo } from '@/lib/utils'
+import { FALLBACK_TEMPLATE, PLATFORM_LABEL, copyText, fillTemplate, formatPostDateWIB, splitHighlight, timeAgo } from '@/lib/utils'
 
 const STATUS_STYLE: Record<LeadStatus, string> = {
   baru: 'bg-amber-100 text-amber-800',
@@ -87,6 +87,13 @@ export default function LeadCard({ lead, onStatus, onDelete }: Props) {
       <p className="mt-3 whitespace-pre-wrap break-words text-[15px] leading-relaxed">
         {parts.map((p, i) => (p.match ? <mark key={i} className="kw">{p.text}</mark> : <span key={i}>{p.text}</span>))}
       </p>
+
+      <div className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-500">
+        <span className="font-medium text-slate-700">Cocok:</span>
+        <span className="truncate">{lead.matchedKeywords || lead.matchedProduct?.name || 'kata kunci'}</span>
+        <span>·</span>
+        <span>{formatPostDateWIB(lead.postedAt)}</span>
+      </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
         <button

@@ -75,7 +75,13 @@ export async function POST(req: NextRequest) {
       const authorAvatarUrl = tw.author?.profilePicture || tw.user?.profile_image_url_https || ''
       const content = tw.text || tw.full_text || ''
       const postUrl = tw.url || `https://x.com/${authorUsername}/status/${externalId}`
-      const postedAt = tw.createdAt ? new Date(tw.createdAt) : new Date()
+      let postedAt = new Date()
+      if (tw.createdAt) {
+        const parsed = new Date(tw.createdAt)
+        if (!isNaN(parsed.getTime())) {
+          postedAt = parsed
+        }
+      }
 
       const contentLower = content.toLowerCase()
 

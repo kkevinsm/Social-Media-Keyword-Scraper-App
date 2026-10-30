@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Download, LogOut, RefreshCw, Search, Settings, Sparkles } from 'lucide-react'
+import { Clock, Download, LogOut, RefreshCw, Search, Settings, Sparkles } from 'lucide-react'
 import LeadCard from './LeadCard'
 import type { LeadCounts, LeadDTO, LeadStatus, ProductDTO } from '@/lib/types'
+import { formatLiveClock } from '@/lib/utils'
 
 type Tab = 'semua' | LeadStatus
 const TABS: { key: Tab; label: string }[] = [
@@ -32,7 +33,17 @@ export default function Dashboard() {
   const [scraping, setScraping] = useState(false)
   const [scrapeMsg, setScrapeMsg] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null)
+
+  // Live realtime clock yang berdetik setiap detik
+  useEffect(() => {
+    setCurrentTime(new Date())
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search), 300)
@@ -154,6 +165,28 @@ export default function Dashboard() {
           </button>
         </div>
       </header>
+
+      {/* Realtime Live Clock & Sync Indicator */}
+      <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-600">
+        <div className="inline-flex items-center gap-2 rounded-full border border-brand-border bg-white/90 px-3.5 py-1.5 font-medium shadow-xs backdrop-blur">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+          </span>
+          <Clock size={13} className="text-slate-500" />
+          <span>
+            Waktu saat ini:{' '}
+            <strong className="font-semibold text-slate-800">
+              {currentTime ? formatLiveClock(currentTime) : 'Menghitung waktu...'}
+            </strong>
+          </span>
+        </div>
+        {updatedAt && (
+          <span className="text-slate-500">
+            Terakhir disegarkan: <strong className="text-slate-700">{updatedAt.toLocaleTimeString('id-ID')} WIB</strong>
+          </span>
+        )}
+      </div>
 
       <nav className="mt-5 flex gap-1 overflow-x-auto border-b border-brand-border" aria-label="Status peluang">
         {TABS.map((t) => (
