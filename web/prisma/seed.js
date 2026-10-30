@@ -19,9 +19,9 @@ const DEFAULT_NEGATIVE_KEYWORDS = 'wts,ready stock,open slot,testi,order via dm,
 const DEFAULT_HASHTAGS = '#zonauang,#zonajajan,#bealanja'
 
 async function main() {
-  console.log('Seeding initial data...')
+  console.log('Seeding initial data (tanpa dummy leads)...')
 
-  // Clean existing data for fresh seed
+  // Clean existing leads & seed products
   await prisma.lead.deleteMany()
   await prisma.replyTemplate.deleteMany()
   await prisma.keywordRule.deleteMany()
@@ -56,66 +56,7 @@ async function main() {
     console.log(`Created product: ${product.name}`)
   }
 
-  // Seed sample leads similar to user's screenshots
-  const netflixProd = await prisma.product.findUnique({ where: { slug: 'netflix' } })
-  const disneyProd = await prisma.product.findUnique({ where: { slug: 'disney-plus' } })
-  const capcutProd = await prisma.product.findUnique({ where: { slug: 'capcut' } })
-
-  if (netflixProd) {
-    await prisma.lead.create({
-      data: {
-        externalId: '18493029482931',
-        platform: 'x',
-        authorName: '피카 ✽',
-        authorUsername: 'pixypaw',
-        authorAvatarUrl: '',
-        content: 'butuh cepet netflix 3 hari #zonauang',
-        matchedProductId: netflixProd.id,
-        matchedKeywords: 'butuh,netflix,#zonauang',
-        postUrl: 'https://x.com/pixypaw/status/18493029482931',
-        status: 'baru',
-        postedAt: new Date(Date.now() - 1000 * 60 * 15),
-      },
-    })
-  }
-
-  if (disneyProd) {
-    await prisma.lead.create({
-      data: {
-        externalId: '18493029482932',
-        platform: 'x',
-        authorName: 'sherin ✨',
-        authorUsername: 'sherinplrrv',
-        authorAvatarUrl: '',
-        content: 'Disney+ seminggu apa sebulan berapa yaa, mau beli #zonauang',
-        matchedProductId: disneyProd.id,
-        matchedKeywords: 'Disney+,mau beli,#zonauang',
-        postUrl: 'https://x.com/sherinplrrv/status/18493029482932',
-        status: 'baru',
-        postedAt: new Date(Date.now() - 1000 * 60 * 5),
-      },
-    })
-  }
-
-  if (capcutProd) {
-    await prisma.lead.create({
-      data: {
-        externalId: '18493029482933',
-        platform: 'threads',
-        authorName: 'Jizel',
-        authorUsername: 'neecdle',
-        authorAvatarUrl: '',
-        content: 'mau capcut pro yg fast respon dong, butuh buat ngedit tugas #zonauang',
-        matchedProductId: capcutProd.id,
-        matchedKeywords: 'capcut,mau,butuh',
-        postUrl: 'https://www.threads.net/@neecdle',
-        status: 'ditindaklanjuti',
-        postedAt: new Date(Date.now() - 1000 * 60 * 60),
-      },
-    })
-  }
-
-  console.log('Seed completed successfully!')
+  console.log('Seed completed cleanly without dummy leads!')
 }
 
 main()
@@ -126,4 +67,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect()
   })
-
