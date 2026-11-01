@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getGlobalSettings, matchLeadContent, parseKeywordsList } from '@/lib/settings'
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,30 +19,38 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 2. Ambil produk yang aktif dan aturannya
-    const activeProducts = await prisma.product.findMany({
-      where: { isActive: true },
-      include: { rules: true },
-    })
+    // 2. Ambil produk yang aktif dan pengaturan global keywords
+    const [activeProducts, globalSettings] = await Promise.all([
+      prisma.product.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true, slug: true, isActive: true },
+      }),
+      getGlobalSettings(),
+    ])
 
     if (!activeProducts.length) {
       return NextResponse.json({ message: 'Tidak ada produk aktif untuk dipantau', totalFetched: 0 })
     }
 
-    // Kumpulkan seluruh kata kunci negasi (penjual lain / WTS)
-    const allNegativeKeywords = new Set<string>()
-    for (const prod of activeProducts) {
-      for (const rule of prod.rules) {
-        rule.negativeKeywords
-          .split(',')
-          .map((k: string) => k.trim().toLowerCase())
-          .filter(Boolean)
-          .forEach((k: string) => allNegativeKeywords.add(k))
+    // 3. Tentukan kata pencarian (query)
+    let query = body.query
+    if (!query) {
+      // Buat query otomatis berbasis hashtag dan intent
+      const hashtags = parseKeywordsList(globalSettings.hashtags)
+        .slice(0, 2)
+        .map((t) => (t.startsWith('#') ? t : `#${t}`))
+        .join(' OR ')
+
+      const sampleProducts = activeProducts.slice(0, 4).map((p) => p.name).join(' OR ')
+      const sampleIntents = parseKeywordsList(globalSettings.intentKeywords).slice(0, 3).join(' OR ')
+
+      if (hashtags) {
+        query = `(${sampleProducts}) (${sampleIntents}) (${hashtags}) -wts`
+      } else {
+        query = `(${sampleProducts}) (${sampleIntents}) -wts`
       }
     }
 
-    // 3. Tentukan kata pencarian (misal 3 produk pertama atau custom query)
-    const query = body.query || 'butuh netflix OR butuh canva OR butuh capcut #zonauang'
     const searchUrl = `https://api.twitterapi.io/twitter/tweet/advanced_search?query=${encodeURIComponent(
       query
     )}&queryType=Latest`
@@ -66,7 +75,7 @@ export async function POST(req: NextRequest) {
 
     let savedCount = 0
     let skippedDuplicate = 0
-    let ignoredCompetitor = 0
+    let ignoredFilter = 0
 
     for (const tw of tweets) {
       const externalId = tw.id || tw.id_str
@@ -83,44 +92,17 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      const contentLower = content.toLowerCase()
+      // Evaluasi filter ketat (Produk + Tanda Ingin Membeli - Kata Negatif)
+      const matchResult = matchLeadContent({
+        content,
+        products: activeProducts,
+        globalSettings,
+      })
 
-      // Cek negasi (WTS / sesama penjual)
-      let isCompetitor = false
-      for (const neg of allNegativeKeywords) {
-        if (contentLower.includes(neg)) {
-          isCompetitor = true
-          ignoredCompetitor++
-          break
-        }
+      if (!matchResult.matched || !matchResult.product) {
+        ignoredFilter++
+        continue
       }
-      if (isCompetitor) continue
-
-      // Cek produk yang cocok
-      let matchedProductId: string | null = null
-      const matchedKeywordsList: string[] = []
-
-      for (const prod of activeProducts) {
-        if (contentLower.includes(prod.name.toLowerCase()) || contentLower.includes(prod.slug.toLowerCase())) {
-          matchedProductId = prod.id
-          matchedKeywordsList.push(prod.name)
-
-          for (const rule of prod.rules) {
-            rule.intentKeywords
-              .split(',')
-              .map((k: string) => k.trim().toLowerCase())
-              .filter(Boolean)
-              .forEach((intent: string) => {
-                if (contentLower.includes(intent) && !matchedKeywordsList.includes(intent)) {
-                  matchedKeywordsList.push(intent)
-                }
-              })
-          }
-          break
-        }
-      }
-
-      if (!matchedProductId) continue
 
       // Simpan ke database dengan proteksi duplikat (upsert)
       try {
@@ -146,8 +128,8 @@ export async function POST(req: NextRequest) {
             authorUsername,
             authorAvatarUrl,
             content,
-            matchedProductId,
-            matchedKeywords: matchedKeywordsList.join(','),
+            matchedProductId: matchResult.product.id,
+            matchedKeywords: matchResult.matchedKeywords,
             postUrl,
             status: 'baru',
             postedAt,
@@ -165,11 +147,10 @@ export async function POST(req: NextRequest) {
       totalFetched: tweets.length,
       savedLeads: savedCount,
       skippedDuplicate,
-      ignoredCompetitor,
+      ignoredFilter,
     })
   } catch (error: any) {
     console.error('Scrape API error:', error)
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
   }
 }
-

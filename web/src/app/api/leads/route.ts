@@ -89,3 +89,45 @@ export async function GET(req: NextRequest) {
   }
 }
 
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const {
+      platform = 'x',
+      externalId = String(Date.now()),
+      authorUsername = 'manual',
+      authorName,
+      content,
+      postUrl,
+      matchedProductId,
+      matchedKeywords = 'manual',
+    } = body
+
+    if (!content || !postUrl) {
+      return NextResponse.json({ error: 'Content and postUrl are required' }, { status: 400 })
+    }
+
+    const lead = await prisma.lead.create({
+      data: {
+        platform,
+        externalId: String(externalId),
+        authorUsername,
+        authorName: authorName || authorUsername,
+        content,
+        postUrl,
+        matchedProductId: matchedProductId || null,
+        matchedKeywords,
+        status: 'baru',
+        postedAt: new Date(),
+      },
+      include: {
+        matchedProduct: true,
+      },
+    })
+
+    return NextResponse.json({ success: true, lead })
+  } catch (error: any) {
+    console.error('Create lead error:', error)
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
+  }
+}
